@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e82306ce-0135-4fa5-b815-0eabebbaf862" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="793b80e9-e474-45a1-8887-dff56ba53d56" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Javed@123456" database="patientcare" />
+	</db:config>
+	<flow name="pateint-rediness-apiFlow" doc:id="4bc60bd1-0489-4153-9b9e-2e0e6bf5419a" >
+		<http:listener doc:name="Listener" doc:id="eb177a10-53d8-4d48-b463-699450a93e15" config-ref="HTTP_Listener_config" path="/selfapi"/>
+		<db:select doc:name="Select" doc:id="6ac42744-cbaf-42bd-a910-0a1d72aecb91" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM patients;]]></db:sql>
+		</db:select>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="fbff9391-9a0c-4202-b9e2-79b4d920e870" variableName="patient"/>
+		<db:select doc:name="refil_status" doc:id="515b1f29-0e4e-4128-8fde-e61dd6141e72" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM pharmacy_refills;]]></db:sql>
+		</db:select>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="4f5e0632-8ffb-4a21-ac06-a820c67ee0a5" variableName="pharmacy_refills"/>
+		<db:select doc:name="Select" doc:id="bce2e551-0bad-4c77-9544-f1f3f83f0d0f" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM appointments;]]></db:sql>
+		</db:select>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="12580412-8128-45f3-893a-9ccb76af003d" variableName="appointment"/>
+		<ee:transform doc:name="Transform Message" doc:id="e2de3175-c1f2-48ab-80a4-5667e66cbef8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.patient map ((item, index) -> {
+    patientId: item.patient_id,
+    patientName: item.name,
+    email: item.email,
+    medicalConditions: item.medical_conditions,
+
+    refillStatus:
+        if (vars.pharmacy_refills[index].refill_status == "Completed")
+            "Refills Available"
+        else if (vars.pharmacy_refills[index].refill_status == "Pending")
+            "Refills Overdue"
+        else
+            "NA",
+        appointmentStatus: vars.appointment.status[0],
+        recommendDoctor: if(item.medical_conditions == "heart problem") "Consult Cardiologist" else if (item.medical_conditions == "diabetes") "Consult Endocrinlogist" else "General physician"
+           
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="4ce15c82-575d-4ab3-9ac3-4d5c96ae6b17" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform> [STUDIO] -->
+	</flow>
+</mule>
