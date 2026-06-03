@@ -50,14 +50,6 @@ vars.patient map ((item, index) -> {
 })]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="961e49aa-f5f0-475d-9270-21b5706c346a" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="4ce15c82-575d-4ab3-9ac3-4d5c96ae6b17" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
