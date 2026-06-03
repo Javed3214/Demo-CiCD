@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e82306ce-0135-4fa5-b815-0eabebbaf862" >
-		<http:listener-connection host="0.0.0.0" port="8081" />
+		<http:listener-connection host="0.0.0.0" port="8082" />
 	</http:listener-config>
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="793b80e9-e474-45a1-8887-dff56ba53d56" >
 		<db:my-sql-connection host="localhost" port="3306" user="root" password="Javed@123456" database="patientcare" />
@@ -48,6 +48,14 @@ vars.patient map ((item, index) -> {
         recommendDoctor: if(item.medical_conditions == "heart problem") "Consult Cardiologist" else if (item.medical_conditions == "diabetes") "Consult Endocrinlogist" else "General physician"
            
 })]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="961e49aa-f5f0-475d-9270-21b5706c346a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="4ce15c82-575d-4ab3-9ac3-4d5c96ae6b17" >
